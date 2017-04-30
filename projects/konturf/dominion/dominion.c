@@ -154,9 +154,9 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed,
   for (i = 0; i < numPlayers; i++)
     {
       if ( shuffle(i, state) < 0 )
-	{
+      {
 	  return -1;
-	}
+      }
     }
 
   //draw player hands
@@ -167,9 +167,9 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed,
       state->discardCount[i] = 0;
       //draw 5 cards
       // for (j = 0; j < 5; j++)
-      //	{
-      //	  drawCard(i, state);
-      //	}
+      //  {
+      //      drawCard(i, state);
+      //  }
     }
   
   //set embargo tokens to 0 for all supply piles
@@ -199,8 +199,8 @@ int initializeGame(int numPlayers, int kingdomCards[10], int randomSeed,
 }
 
 int shuffle(int player, struct gameState *state) {
- 
 
+ 
   int newDeck[MAX_DECK];
   int newDeckPos = 0;
   int card;
@@ -1074,6 +1074,7 @@ int adventurerEffect(struct gameState *state, int handPos) {
    int drawntreasure = 0;
    int cardDrawn;
    int topCard;
+   int y = 0; // counter for the shuffle
    int z = 0; // counter for temp hand
 
    while(drawntreasure < 2) {
@@ -1116,8 +1117,6 @@ int smithyEffect(struct gameState *state, int handPos) {
    for(i = 0; i < 3; i++) {
       drawCard(currentPlayer, state);
    }
-   // discard smithy card from hand
-   discardCard(handPos, currentPlayer, state, 0);
    return 0;
 }
 
@@ -1156,10 +1155,10 @@ int feastEffect(int choice, struct gameState *state, int handPos) {
          cardCountTotal = cardCountHand + cardCountDeck + cardCountDiscard;
          printf("Deck Count: %d\n", cardCountTotal);
       }
-
-      gainCard(choice, state, 0, currentPlayer); // Gain the card
       // discard and trash the feast card
       discardCard(handPos, currentPlayer, state, 1);
+
+      gainCard(choice, state, 0, currentPlayer); // Gain the card
 
       if(DEBUG) { 
          cardCountHand = state->handCount[currentPlayer];
@@ -1245,6 +1244,7 @@ int mineEffect(int choice1, int choice2, struct gameState *state, int handPos)
          break;
       }
    }
+   return 0;
 }
 
 int discardCard(int handPos, int currentPlayer, struct gameState *state, int trashFlag)

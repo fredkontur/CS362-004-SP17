@@ -1074,12 +1074,17 @@ int adventurerEffect(struct gameState *state, int handPos) {
    int drawntreasure = 0;
    int cardDrawn;
    int topCard;
+   int totDeck; // counter for total cards in deck
+   int totDiscard; // counter for total cards in discard
    int y = 0; // counter for the shuffle
    int z = 0; // counter for temp hand
 
-   while(drawntreasure < 2) {
+   totDeck = state->deckCount[currentPlayer];
+   totDiscard = state->discardCount[currentPlayer];
+
+   while((drawntreasure < 2) && ((totDeck + totDiscard) != 0)) {
       // if the deck is empty, we need to shuffle discard and add to deck
-      if(state->deckCount[currentPlayer] < 1) {
+      if(totDeck < 1) {
          shuffle(currentPlayer, state);
       }
       drawCard(currentPlayer, state);
@@ -1095,6 +1100,8 @@ int adventurerEffect(struct gameState *state, int handPos) {
          state->handCount[currentPlayer]--;
          z++;
       }
+      totDeck = state->deckCount[currentPlayer];
+      totDiscard = state->discardCount[currentPlayer];
    }
    // discard all non-treasure cards that have been drawn
    while((z - 1) > 0) {
@@ -1132,16 +1139,12 @@ int feastEffect(int choice, struct gameState *state, int handPos) {
    updateCoins(currentPlayer, state, 5);
    // Buy one card
    if(supplyCount(choice, state) <= 0) {
-      printf("None of that card left, sorry!\n");
-
       if(DEBUG) {
          printf("Cards Left: %d\n", supplyCount(choice, state));
       }
       return -1;
    }
    else if(state->coins < getCost(choice)) {
-      printf("That card is too expensive!\n");
-
       if(DEBUG) {
          printf("Coins: %d < %d\n", state->coins, getCost(choice));
       }

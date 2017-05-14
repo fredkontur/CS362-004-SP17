@@ -2,7 +2,7 @@
  * Filename:     cardtest3.c
  * Author:       Fred Kontur
  * Date Written: May 3, 2017
- * Last Edited:  May 6, 2017
+ * Last Edited:  May 14, 2017
  * Description:  This file contains a random test generator for the Feast card
  *               in dominion.c
  * Business Requirements for Feast:
@@ -22,10 +22,11 @@
 #include <string.h>
 #include <time.h>
 
-#define NUM_ITER 200
+#define NUM_ITER 2000
 #define MAX_HAND_COUNT 10
 #define MAX_DECK_COUNT 10
 #define MAX_DISCARD_COUNT 10
+#define MAX_PLAYED_COUNT 10
 
 // Returns 1 if decks are the same, 0 if different
 int compDecks(int* arr1, int* arr2, int deckSize) {
@@ -44,7 +45,13 @@ int compDecks(int* arr1, int* arr2, int deckSize) {
 // numActions, and the hand and discard pile of the current player. It returns 
 // 1 if the states are the same, 0 if different.
 int compStates(struct gameState s1, struct gameState s2, int currPlayer) {
-   int i, res = 1;
+   int i, res = 1, numPlayer = s1.numPlayers;
+
+   // If numPlayer is greater than MAX_PLAYERS, then change it to MAX_PLAYERS
+   // so the array tests don't go out of bounds
+   if(numPlayer > MAX_PLAYERS) {
+      numPlayer = MAX_PLAYERS;
+   } 
 
    if((s1.numPlayers) != (s2.numPlayers)) {
       printf("Feast changed the number of players in the game.\n");
@@ -66,7 +73,7 @@ int compStates(struct gameState s1, struct gameState s2, int currPlayer) {
       printf("Feast changed the buys counter.\n");
       res = 0;
    }
-   for(i = 0; i < s1.numPlayers; i++) {
+   for(i = 0; i < numPlayer; i++) {
       if((s1.deckCount[i]) != (s2.deckCount[i])) {
          printf("Feast changed the number of cards in the deck of"); 
          printf("  Player %d.\n", i);
@@ -189,78 +196,84 @@ int checkFeastChanges(struct gameState originalState,
    return res;
 }
 
-void resetStates(struct gameState *state1, struct gameState *state2, 
-                 int numPlayer, int* k, int seed) {
+int randomTestGenerator(struct gameState *state1, struct gameState *state2,
+                        int *choice)
+{
+   int i, j, currPlayer, numPlayer, numHand, handPos, numDeck, numDiscard;
+   int numPlayed;
+
    // First, clear the states
    memset(state1, 0, sizeof(struct gameState));
    memset(state2, 0, sizeof(struct gameState));
 
-   // Now, initialize one of the states and then copy it
-   initializeGame(numPlayer, k, seed, state1);
-   memcpy(state2, state1, sizeof(struct gameState));
-}
+   // Generate a random number of players between 1 and 5
+   numPlayer = (rand() % 5) + 1;
+   state1->numPlayers = numPlayer;
 
-int randomTestGenerator(struct gameState *state1, struct gameState *state2,
-                         int *k, int seed, int *choice)
-{
-   int i, j, currPlayer, numPlayer, numHand, handPos, numDeck, numDiscard;
-   int currCard;
-   int kChosen[treasure_map + 1], possChoices[adventurer + 10];
+   // Choose a random current player between 0 and 3
+   currPlayer = rand() % 4;
+   state1->whoseTurn = currPlayer;
 
-   // Start to populate the possChoices[] array
-   for(i = 0; i < adventurer; i++) {
-      possChoices[i] = i;
+   // Choose a random number of cards for each of the sets of cards in supply
+   // between -5 and 100 and similarly for embargo tokens
+   for(i = 0; i <= treasure_map; i++) {
+      state1->supplyCount[i] = (rand() % 106) - 5;
+      state1->embargoTokens[i] = (rand() % 106) - 5;
    }
 
-   // Create a kingdom card deck
-   // Keep track of which kingdom cards were chosen by initializing
-   // kChosen with zeroes (0 = not chosen, 1 = chosen)
-   memset(kChosen, 0, sizeof(kChosen));
-   // Randomly choose cards for the kingdom card deck
-   for(i = 0; i < 10; i++) {
-      do {
-      currCard = (rand() % (treasure_map - gold)) + adventurer;
-      } while(kChosen[currCard]);
-      kChosen[currCard] = 1;
-      possChoices[i + adventurer] = k[i] = currCard;
-   }
+   // Choose a random number for outpostPlayed between 0 and 10
+   state1->outpostPlayed = rand() % 11;
+
+   // Choose a random number for outpostTurn between 0 and 10
+   state1->outpostTurn = rand() % 11;
+
+   // Choose a random number for phase between 0 and 4
+   state1->phase = rand() % 5;
+
+   // Choose a random number for number of actions between 0 and 5
+   state1->numActions = rand() % 6;
+
+   // Choose a random number of coins between -1 and 20
+   state1->coins = (rand() % 22) - 1;
+
+   // Choose a random number of buys between -1 and 5
+   state1->numBuys = (rand() % 7) - 1; 
 
    // Randomly select the card that the player will attempt to gain with the
    // Feast card
-   i = rand() % (sizeof(possChoices) / sizeof(int));
-   *choice = possChoices[i];
-
-   // Generate a random number of players between 2 and 4
-   numPlayer = (rand() % 3) + 2;
-
-   // Initialize a new game state and its copy
-   resetStates(state1, state2, numPlayer, k, seed);
-
-   // Choose a random current player between 0 and numPlayer - 1
-   currPlayer = rand() % numPlayer;
-   state1->whoseTurn = currPlayer;
-
+   *choice = rand() % (treasure_map + 1);
+   
    // Choose a random number of cards in the current player's hand between 1 
    // and MAX_HAND_COUNT
    numHand = (rand() % MAX_HAND_COUNT) + 1;
    state1->handCount[currPlayer] = numHand;
 
-   // Put random cards in the current player's hand. One of the cards will be
-   // replaced by the Feast card
+   // Put random cards in the hand of the current player between -1 and 
+   // treasure_map + 1. One of the cards will be replaced by the Feast card
    for(i = 0; i < numHand; i++) {
-      state1->hand[currPlayer][i] = rand() % (treasure_map + 1);
+      state1->hand[currPlayer][i] = (rand() % (treasure_map + 3)) - 1;
    }
 
    // Choose a random hand position for the Feast card
    handPos = rand() % numHand;
    state1->hand[currPlayer][handPos] = feast;
 
-   // The other players should have 5 cards in their hands. Choose random
-   // cards for their hands
+   // If numPlayer is greater than MAX_PLAYERS, then make it equal to 
+   // MAX_PLAYERS so that the arrays don't go out of bounds for the following
+   // tasks
+   if(numPlayer > MAX_PLAYERS) {
+      numPlayer = MAX_PLAYERS;
+   }
+
+   // For the other players, choose a random number of cards for their hands
+   // between - and MAX_HAND_COUNT and populate the hands with random cards
+   // with IDs between -1 and treasure_map + 1
    for(i = 0; i < numPlayer; i++) {
+      numHand = rand() % (MAX_HAND_COUNT + 1);
       if(i != currPlayer) {
-         for(j = 0; j < 5; j++) {
-            state1->hand[i][j] = rand() % (treasure_map + 1);
+         state1->handCount[i] = numHand;
+         for(j = 0; j < numHand; j++) {
+            state1->hand[i][j] = (rand() % (treasure_map + 3)) - 1;
          }
       }
    }
@@ -270,9 +283,9 @@ int randomTestGenerator(struct gameState *state1, struct gameState *state2,
    for(i = 0; i < numPlayer; i++) {
       numDeck = rand() % (MAX_DECK_COUNT + 1);
       state1->deckCount[i] = numDeck;
-      // Put random cards in the deck
+      // Put random cards in the deck with IDs between -1 and treasure_map + 1
       for(j = 0; j < numDeck; j++) {
-         state1->deck[i][j] = rand() % (treasure_map + 1);
+         state1->deck[i][j] = (rand() % (treasure_map + 3)) - 1;
       }
    }
 
@@ -281,15 +294,20 @@ int randomTestGenerator(struct gameState *state1, struct gameState *state2,
    for(i = 0; i < numPlayer; i++) {
       numDiscard = rand() % (MAX_DISCARD_COUNT + 1);
       state1->discardCount[i] = numDiscard;
-      // Put random cards in the discard pile
+      // Put random cards in the discard pile with IDs between -1 and 
+      // treasure_map + 1
       for(j = 0; j < numDiscard; j++) {
-         state1->discard[i][j] = rand() % (treasure_map + 1);
+         state1->discard[i][j] = (rand() % (treasure_map + 3)) - 1;
       }
    }
 
-   // Randomize the number of each kingdom card that is available
-   for(i = 0; i < 10; i++) {
-      state1->supplyCount[k[i]] = rand() % 11;
+   // Choose a random number of cards for the played card pile between 0 and
+   // MAX_PLAYED_COUNT and put random cards in the played card pile with IDs
+   // between -1 and treasure_map + 1
+   numPlayed = rand() % (MAX_PLAYED_COUNT + 1);
+   state1->playedCardCount = numPlayed;
+   for(i = 0; i < numPlayed; i++) {
+      state1->playedCards[i] = (rand() % (treasure_map + 3)) - 1;
    }
 
    // Copy the state
@@ -299,9 +317,8 @@ int randomTestGenerator(struct gameState *state1, struct gameState *state2,
 }
 
 void testFeast() {
-   int i, j, seed, handPos, res, res1, res2;
+   int i, j, handPos, res, res1, res2;
    int numPlayer, currPlayer, numHand, gainedCard;
-   int k[10];
    struct gameState state, copyState;
 
    srand(time(NULL));
@@ -309,8 +326,7 @@ void testFeast() {
    printf("***************Tests for Feast Card***************\n");
 
    for(i = 0; i < NUM_ITER; i++) {
-      seed = rand();
-      handPos = randomTestGenerator(&state, &copyState, k, seed, &gainedCard);
+      handPos = randomTestGenerator(&state, &copyState, &gainedCard);
       numPlayer = state.numPlayers;
       currPlayer = state.whoseTurn;
       numHand = state.handCount[currPlayer];
@@ -327,10 +343,6 @@ void testFeast() {
             for(j = 0; j < numHand; j++) {
                printf(" %d", copyState.hand[currPlayer][j]);
             }
-            printf("\nKingdom Cards (Count):");
-            for(j = 0; j < 10; j++) {
-               printf(" %d(%d)", k[j], copyState.supplyCount[k[j]]);
-            }
             printf("\nAttempted card to be gained: %d\n", gainedCard);
             printf("Incorrect result, card costing more than 5 was ");
             printf("gained\n\n");
@@ -345,13 +357,23 @@ void testFeast() {
             for(j = 0; j < numHand; j++) {
                printf(" %d", copyState.hand[currPlayer][j]);
             }
-            printf("\nKingdom Cards (Count):");
-            for(j = 0; j < 10; j++) {
-               printf(" %d(%d)", k[j], copyState.supplyCount[k[j]]);
-            }
             printf("\nAttempted card to be gained: %d\n", gainedCard);
             printf("Incorrect result, card not in supply but was allowed ");
             printf("to be gained\n\n");
+         }
+      }
+      else if(copyState.phase != 0) {
+         if(res != -1) {
+            printf("Phase: %d\n", copyState.phase);
+            printf("Incorrect result, Feast was played when phase ");
+            printf("was not 0\n\n");
+         }
+      }
+      else if(copyState.numActions < 1) {
+         if(res != -1) {
+            printf("Number of Actions: %d\n", copyState.numActions);
+            printf("Incorrect result, Feast was played when numActions ");
+            printf("was less than 1\n\n");
          }
       }
       else {
@@ -362,10 +384,6 @@ void testFeast() {
             printf("Hand Cards:");
             for(j = 0; j < numHand; j++) {
                printf(" %d", copyState.hand[currPlayer][j]);
-            }
-            printf("\nKingdom Cards (Count):");
-            for(j = 0; j < 10; j++) {
-               printf(" %d(%d)", k[j], copyState.supplyCount[k[j]]);
             }
             printf("Incorrect result, playCard() returned -1\n\n");
          }
@@ -380,10 +398,6 @@ void testFeast() {
                printf("Hand Cards:");
                for(j = 0; j < numHand; j++) {
                   printf(" %d", copyState.hand[currPlayer][j]);
-               }
-               printf("\nKingdom Cards (Count):");
-               for(j = 0; j < 10; j++) {
-                  printf(" %d(%d)", k[j], copyState.supplyCount[k[j]]);
                }
                printf("Incorrect result, see description above\n\n");
             }

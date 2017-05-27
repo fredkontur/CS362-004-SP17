@@ -179,22 +179,10 @@ int checkAdventurerChanges(struct gameState originalState,
          printf("as should have occured.\n");
          res = 0;
       }
-      if((orgnlHndCnt + 2) != fnlHndCnt) {
+      if((orgnlHndCnt + 1) != fnlHndCnt) {
          printf("Current player did not pick up 2 Treasures ");
          printf("and discard non-Treasure cards as required\n");
          res = 0;
-      }
-      else {
-         for(j = 0; j < 2; j++) {
-            currCard = finalState.hand[currPlayer][fnlHndCnt + i];
-            if((currCard != copper) || (currCard != silver) || 
-               (currCard != gold))
-            {
-               printf("Current player did not pick up 2 Treasures ");
-               printf("and discard non-Treasure cards as required\n");
-               res = 0;
-            }
-         }
       }
    }
    else {
@@ -203,22 +191,10 @@ int checkAdventurerChanges(struct gameState originalState,
          printf("piles as should have occurred.\n");
          res = 0;
       }
-      if((orgnlHndCnt + orgnlTCnt) != fnlHndCnt) {
+      if((orgnlHndCnt + orgnlTCnt - 1) != fnlHndCnt) {
          printf("Current player did not pick up %d Treasure ", orgnlTCnt);
          printf("and discard non-Treasure cards as required\n");
          res = 0;
-      }
-      else {
-         for(j = 0; j < orgnlTCnt; j++) {
-            currCard = finalState.hand[currPlayer][fnlHndCnt + i];
-            if((currCard != copper) || (currCard != silver) || 
-               (currCard != gold))
-            {
-               printf("Current player did not pick up %d Treasure", orgnlTCnt);
-               printf(" and discard non-Treasure cards as required\n");
-               res = 0;
-            }
-         }
       }
    }
    // Check that the correct number of non-Treasure cards were moved from 
@@ -242,7 +218,7 @@ int checkAdventurerChanges(struct gameState originalState,
          treasTot += 3;
       }
    }
-   // Determine if coins were proprely updated
+   // Determine if coins were properly updated
    if(finalState.coins != treasTot) {
       printf("Coins were not properly updated after Adventurer was played\n");
       res = 0;

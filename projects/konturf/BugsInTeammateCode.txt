@@ -1,0 +1,451 @@
+Title: Players Do Not Receive 5 Cards at Start of Game
+
+ID: Dom-001
+
+Class: Minor Bug
+
+Date: 15-May-2017
+Reported By: Fred Kontur   
+Email: konturf@oregonstate.edu
+
+
+Product: dominion.c     Version: N/A
+Platform: LINUX         Version: 7.2.1151 (Core)
+Browser: N/A            Version: N/A
+URL: N/A
+
+Is it reproducible: Yes
+
+Description
+===========
+When the function initializeGame() is run, all players except Player 0 have 0
+cards in their hands. The rules of Dominion require all players to start with 5
+cards in their hands.
+
+
+Steps to Produce/Reproduce
+--------------------------
+1. Run initializeGame()
+2. Examine how many cards are in each player's hand by checking the handCount
+   variable in the gameState struct for each of the players
+
+
+Expected Results
+----------------
+All players should have 5 cards in their hands at the start of the game.
+
+
+Actual Results
+--------------
+All players except Player 0 have 0 cards in their hands at the start of
+the game.
+
+
+Workarounds
+-----------
+Have each of the players draw 5 cards at the start of their turn. This
+workaround is not ideal because players may play cards which depend on the
+other players having cards in their hands. Such cards will not produce the
+correct actions if the other players do not draw cards until the start of
+their turns.
+
+
+Attachments
+-----------
+None
+
+
+Other Information
+-----------------
+None
+
+*******************************************************************************
+*******************************************************************************
+
+Title: Players Do Not Draw 5 Cards at End of Turn
+
+ID: Dom-002
+
+Class: Minor Bug
+
+Date: 20-May-2017
+Reported By: Fred Kontur   
+Email: konturf@oregonstate.edu
+
+
+Product: dominion.c     Version: N/A
+Platform: LINUX         Version: 7.2.1151 (Core)
+Browser: N/A            Version: N/A
+URL: N/A
+
+Is it reproducible: Yes
+
+Description
+===========
+When the function endTurn() is run, the current player does not draw 5 cards
+before finishing his/her turn as required by the rules of Dominion.
+
+
+Steps to Produce/Reproduce
+--------------------------
+1. Run endTurn()
+2. Examine how many cards are in the hand of the player who was the current
+   player when endTurn() was called.
+
+
+Expected Results
+----------------
+The player who was the current player when endTurn() was called should have 5
+cards in his/her hand when endTurn() has finished.
+
+
+Actual Results
+--------------
+The player who was the current player when endTurn() was called has 0 cards in
+his/her hand when endTurn() has finished.
+
+
+Workarounds
+-----------
+Have the players draw 5 cards at the start of their turns. This workaround is
+not ideal because players may play cards which depend on the other players 
+having cards in their hands. Such cards will not produce the correct actions
+if the other players do not draw cards until the start of their turns.
+
+
+Attachments
+-----------
+None
+
+
+Other Information
+-----------------
+None
+
+*******************************************************************************
+*******************************************************************************
+
+Title: 4 Cards Are Picked Up Instead of 3 when Smithy Is Played
+
+ID: Dom-003
+
+Class: Minor Bug
+
+Date: 20-May-2017
+Reported By: Fred Kontur   
+Email: konturf@oregonstate.edu
+
+
+Product: dominion.c     Version: N/A
+Platform: LINUX         Version: 7.2.1151 (Core)
+Browser: N/A            Version: N/A
+URL: N/A
+
+Is it reproducible: Yes
+
+Description
+===========
+When the Smithy card is played, the current player picks up 4 cards from the 
+deck rather than 3 as is required by the card's action.
+
+
+Steps to Produce/Reproduce
+--------------------------
+1. Count the number of cards in the hand of the current player. Assume that
+   value is saved in the variable initialHandCount.
+2. If handPos is the hand position of Smithy, and state is the current 
+   gameState, call the function playCard() with 
+   playCard(handPos, 0, 0, 0 &state).  
+3. Examine how many cards are in the hand of the current player. It will not 
+   equal to initialHandCount + 2 as it should but rather initialHandCount + 3.
+
+
+Expected Results
+----------------
+The current player should have initialHandCount + 2 cards in his/her hand
+after Smithy is played because 3 cards should be drawn and Smithy discarded.
+
+
+Actual Results
+--------------
+The current player has initialHandCount + 3 in his/her hand after Smithy
+is played.
+
+
+Workarounds
+-----------
+The fault is not fatal, so play can continue with the current player having
+the incorrect cards in his/her hand.
+
+
+Attachments
+-----------
+None
+
+
+Other Information
+-----------------
+None
+
+*******************************************************************************
+*******************************************************************************
+
+Title: Adventurer Card Does Not Get Discarded
+
+ID: Dom-004
+
+Class: Minor Bug
+
+Date: 20-May-2017
+Reported By: Fred Kontur   
+Email: konturf@oregonstate.edu
+
+
+Product: dominion.c     Version: N/A
+Platform: LINUX         Version: 7.2.1151 (Core)
+Browser: N/A            Version: N/A
+URL: N/A
+
+Is it reproducible: Yes
+
+Description
+===========
+The Adventurer card does not get discarded after it is played.
+
+
+Steps to Produce/Reproduce
+--------------------------
+1. Count the number of Adventurer cards in the current player's hand and store
+   that value in the variable numAdventurers.
+2. Assume handPos is the hand position of the Adventuer card and state is the
+   variable representing the current gameState. Call the function playCard() 
+   with playCard(handPos, 0, 0, 0, &state).
+3. After playing Adventurer, count the number of Adventurer cards in the
+   current player's hand. It will equal numAdventurers rather than 
+   numAdventurers - 1.
+
+
+Expected Results
+----------------
+The current player should discard the Adventurer card after it is played.
+
+
+Actual Results
+--------------
+The Adventurer card remains in the current player's hand rather than being
+discarded after it is played.
+
+
+Workarounds
+-----------
+The fault is not fatal, so play can continue with the current player
+incorrectly holding on to the Adventurer card that was played.
+
+
+Attachments
+-----------
+None
+
+
+Other Information
+-----------------
+None
+
+*******************************************************************************
+*******************************************************************************
+
+Title: Infinite Loop for Feast Card
+
+ID: Dom-005
+
+Class: Major Bug
+
+Date: 20-May-2017
+Reported By: Fred Kontur   
+Email: konturf@oregonstate.edu
+
+
+Product: dominion.c     Version: N/A
+Platform: LINUX         Version: 7.2.1151 (Core)
+Browser: N/A            Version: N/A
+URL: N/A
+
+Is it reproducible: Yes
+
+Description
+===========
+If the action of the Feast card cannot be executed, either because the chosen
+card from the supply is too expensive or because it is not present in the 
+supply, then the cardEffect() function will go into an infinite loop.
+
+
+Steps to Produce/Reproduce
+--------------------------
+1. Represent the hand position of the Feast card with the variable handPos and
+   the current gameState with the variable state.
+2. Make the following call: playCard(handPos, adventurer, 0, 0, &state)
+3. Alternatively, make the following call:
+   playCard(handPos, -1, 0, 0, &state)
+4. Alternatively, make the following call:
+   playCard(handPos, treasure_map + 1, 0, 0, &state)
+
+
+Expected Results
+----------------
+When an invalid card is chosen from the supply when Feast is attempted to be
+played, Feast card is not played and no change is made to the gameState.
+
+
+Actual Results
+--------------
+Feast card goes into an infinite loop when an invalid card is chosen from the
+supply.
+
+
+Workarounds
+-----------
+Before calling playCard(), check to see if the player has chosen a valid card
+from the supply when playing Feast.
+
+
+Attachments
+-----------
+None
+
+
+Other Information
+-----------------
+None
+
+*******************************************************************************
+*******************************************************************************
+
+Title: Incorrect Logic for Mine Card
+
+ID: Dom-006
+
+Class: Minor Bug
+
+Date: 21-May-2017
+Reported By: Fred Kontur   
+Email: konturf@oregonstate.edu
+
+
+Product: dominion.c     Version: N/A
+Platform: LINUX         Version: 7.2.1151 (Core)
+Browser: N/A            Version: N/A
+URL: N/A
+
+Is it reproducible: Yes
+
+Description
+===========
+Players using the Mine card should not be allowed to gain a Treasure card
+that costs more than 3 coins more than the Treasure card being trashed. 
+However, the following code in Mine allows players to only gain cards that
+cost more than 2 coins more than the cost of the Treasure card being trashed:
+if ((getCost(state->hand[currentPlayer][choice1]) + 3) > getCost(choice2)) {
+    return -1;
+}
+
+Steps to Produce/Reproduce
+--------------------------
+1. Represent the hand position of the Mine card with the variable handPos, the
+   hand position of the card being trashed with posTrashCard, and the current 
+   gameState with the variable state.
+2. Choose a Copper card to be trashed.
+3. Make the following call: playCard(handPos, posTrashCard, gold, 0, &state)
+4. Confirm that Gold (cost: 6) was gained by trashing a Copper (cost: 0).
+
+
+Expected Results
+----------------
+When a card that costs more than 3 coins more than the card being trashed is
+chosen to be gained, then the action should not be allowed and no change
+should be made to the gameState.
+
+
+Actual Results
+--------------
+Chosen cards that cost more than 3 coins more than the card being trashed are
+allowed to be gained when playing Mine.
+
+
+Workarounds
+-----------
+Before calling playCard(), check to see if the player has chosen a valid card
+to be gained when playing Mine.
+
+
+Attachments
+-----------
+None
+
+
+Other Information
+-----------------
+None
+
+*******************************************************************************
+*******************************************************************************
+
+Title: Mine Card Can Be Used to Gain a Non-Treasure Card
+
+ID: Dom-007
+
+Class: Minor Bug
+
+Date: 21-May-2017
+Reported By: Fred Kontur   
+Email: konturf@oregonstate.edu
+
+
+Product: dominion.c     Version: N/A
+Platform: LINUX         Version: 7.2.1151 (Core)
+Browser: N/A            Version: N/A
+URL: N/A
+
+Is it reproducible: Yes
+
+Description
+===========
+Players should only be allowed to gain Treasure cards from the supply when
+playing the Mine card. However, the dominion.c code allows players to gain
+non-Treasure cards when playing Mine.
+
+Steps to Produce/Reproduce
+--------------------------
+1. Represent the hand position of the Mine card with the variable handPos, the
+   hand position of the card being trashed with posTrashCard, and the current 
+   gameState with the variable state.
+2. Choose a Silver card to be trashed.
+3. Make the following call: 
+   playCard(handPos, posTrashCard, adventurer, 0, &state)
+4. Confirm that the Adventurer card was gained.
+
+
+Expected Results
+----------------
+When a player attempts to gain a non-Treasure card when playing Mine, then the
+action should not be allowed and no change should be made to the gameState.
+
+
+Actual Results
+--------------
+Players are allowed to gain non-Treasure cards when playing Mine.
+
+
+Workarounds
+-----------
+Before calling playCard(), check to see if the player has chosen a valid card
+to be gained when playing Mine.
+
+
+Attachments
+-----------
+None
+
+
+Other Information
+-----------------
+None

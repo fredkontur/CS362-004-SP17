@@ -1104,7 +1104,7 @@ int adventurerEffect(struct gameState *state, int handPos) {
       totDiscard = state->discardCount[currentPlayer];
    }
    // discard all non-treasure cards that have been drawn
-   while((z - 1) > 0) {
+   while((z - 1) >= 0) {
       topCard = state->discardCount[currentPlayer];
       state->discard[currentPlayer][topCard++] = temphand[z - 1];
       state->discardCount[currentPlayer] = topCard;
